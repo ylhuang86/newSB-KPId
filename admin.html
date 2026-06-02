@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者儀表板</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">新南向磨課師 KPI 填報系統</div>
+    <div class="navbar-user">
+      <span id="navAdminName"></span>
+      <a href="change-password.html" class="nav-link">更改密碼</a>
+      <button class="btn btn-sm btn-outline" onclick="Auth.logout()">登出</button>
+    </div>
+  </nav>
+
+  <main class="container container-wide">
+    <div class="page-header">
+      <h2>管理者儀表板</h2>
+    </div>
+
+    <!-- 模式切換 tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabSummary"  onclick="Admin.switchTab('summary')">彙整加總</button>
+      <button class="tab-btn"        id="tabSchool"   onclick="Admin.switchTab('school')">各校資料</button>
+    </div>
+
+    <!-- ===== 彙整加總 ===== -->
+    <div id="panelSummary">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <label for="summaryMonthFilter">篩選月份：</label>
+          <select id="summaryMonthFilter">
+            <option value="">全部月份</option>
+          </select>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-outline btn-sm" id="btnExportMonth">下載指定月份 .xlsx</button>
+          <button class="btn btn-outline btn-sm" id="btnExportAll">下載所有月份 .xlsx</button>
+        </div>
+      </div>
+
+      <div id="summaryLoading" class="alert alert-info">載入中…</div>
+      <div id="summaryContent" class="hidden">
+        <table class="data-table" id="summaryTable">
+          <thead id="summaryTableHead"></thead>
+          <tbody id="summaryTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 各校資料 ===== -->
+    <div id="panelSchool" class="hidden">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <label for="schoolSelect">選擇學校：</label>
+          <select id="schoolSelect"></select>
+          <label for="schoolMonthSelect">月份：</label>
+          <select id="schoolMonthSelect"></select>
+          <button class="btn btn-primary btn-sm" id="btnLoadSchool">載入</button>
+        </div>
+      </div>
+
+      <div id="schoolLoading" class="alert alert-info hidden">載入中…</div>
+      <div id="schoolNoData" class="alert hidden">該校本月尚未填寫資料。</div>
+
+      <div id="schoolDataCard" class="card hidden">
+        <div class="card-header">
+          <span id="schoolDataTitle"></span>
+          <div>
+            <button class="btn btn-sm btn-outline" id="btnEditSchool">修正資料</button>
+            <button class="btn btn-sm btn-outline" id="btnExportSchool">下載 .xlsx</button>
+          </div>
+        </div>
+        <table class="data-table" id="schoolTable">
+          <thead>
+            <tr><th>欄位代號</th><th>說明</th><th id="schoolValueHeader">數值</th></tr>
+          </thead>
+          <tbody id="schoolTableBody"></tbody>
+        </table>
+        <div class="table-footer">
+          <span class="text-muted" id="schoolSubmittedAt"></span>
+        </div>
+      </div>
+
+      <!-- 修正表單（預設隱藏） -->
+      <div id="editCard" class="card hidden">
+        <div class="card-header">
+          <span id="editTitle">修正資料</span>
+          <button class="btn btn-sm btn-outline" onclick="Admin.cancelEdit()">取消</button>
+        </div>
+        <form id="editForm" novalidate>
+          <div class="kpi-grid" id="editGrid"></div>
+          <div id="editError"   class="alert alert-error  hidden"></div>
+          <div id="editSuccess" class="alert alert-success hidden"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="editSubmitBtn">儲存修正</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.mini.min.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

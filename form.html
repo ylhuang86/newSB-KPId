@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPI 填寫表單</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 頂部導覽列 -->
+  <nav class="navbar">
+    <div class="navbar-brand">新南向磨課師 KPI 填報系統</div>
+    <div class="navbar-user">
+      <span id="navSchoolName"></span>
+      <a href="view.html" class="nav-link">查閱資料</a>
+      <a href="change-password.html" class="nav-link">更改密碼</a>
+      <button class="btn btn-sm btn-outline" onclick="Auth.logout()">登出</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="page-header">
+      <h2 id="pageTitle">KPI 填寫表單</h2>
+      <p id="pageSubtitle" class="text-muted"></p>
+    </div>
+
+    <!-- 填寫期間提示 -->
+    <div id="windowAlert" class="alert hidden"></div>
+
+    <!-- 表單 -->
+    <form id="kpiForm" novalidate>
+      <div class="card">
+
+        <!-- 第一類：課程開設 -->
+        <div class="kpi-section">
+          <h3 class="kpi-section-title">第一類：課程開設</h3>
+          <div class="kpi-grid">
+            <div class="kpi-item">
+              <label for="kpi_1_1"><span class="kpi-code">1-1</span> 磨課師課程開設數（門）</label>
+              <input type="number" id="kpi_1_1" name="1-1" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_1_2"><span class="kpi-code">1-2</span> 推廣對象母語課程數</label>
+              <input type="number" id="kpi_1_2" name="1-2" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_1_3"><span class="kpi-code">1-3</span> 英語課程數</label>
+              <input type="number" id="kpi_1_3" name="1-3" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_1_4"><span class="kpi-code">1-4</span> 多語言課程數</label>
+              <input type="number" id="kpi_1_4" name="1-4" min="0" value="0" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第二類：註冊 -->
+        <div class="kpi-section">
+          <h3 class="kpi-section-title">第二類：註冊</h3>
+          <div class="kpi-hint">2-1 須等於 2-2 + 2-3</div>
+          <div class="kpi-grid">
+            <div class="kpi-item kpi-total">
+              <label for="kpi_2_1"><span class="kpi-code">2-1</span> 註冊人次（境內＋境外）</label>
+              <input type="number" id="kpi_2_1" name="2-1" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_2_2"><span class="kpi-code">2-2</span> 境內註冊人次</label>
+              <input type="number" id="kpi_2_2" name="2-2" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_2_3"><span class="kpi-code">2-3</span> 境外註冊人次</label>
+              <input type="number" id="kpi_2_3" name="2-3" min="0" value="0" required>
+            </div>
+          </div>
+          <div id="error_2" class="field-error hidden"></div>
+        </div>
+
+        <!-- 第三類：使用 -->
+        <div class="kpi-section">
+          <h3 class="kpi-section-title">第三類：使用</h3>
+          <div class="kpi-hint">3-1 須等於 3-2 + 3-3</div>
+          <div class="kpi-grid">
+            <div class="kpi-item kpi-total">
+              <label for="kpi_3_1"><span class="kpi-code">3-1</span> 使用人次（境內＋境外）</label>
+              <input type="number" id="kpi_3_1" name="3-1" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_3_2"><span class="kpi-code">3-2</span> 境內使用人次</label>
+              <input type="number" id="kpi_3_2" name="3-2" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_3_3"><span class="kpi-code">3-3</span> 境外使用人次</label>
+              <input type="number" id="kpi_3_3" name="3-3" min="0" value="0" required>
+            </div>
+          </div>
+          <div id="error_3" class="field-error hidden"></div>
+        </div>
+
+        <!-- 第四類：通過與證書 -->
+        <div class="kpi-section">
+          <h3 class="kpi-section-title">第四類：通過與證書</h3>
+          <div class="kpi-hint">4-1 須等於 4-2 + 4-3</div>
+          <div class="kpi-grid">
+            <div class="kpi-item kpi-total">
+              <label for="kpi_4_1"><span class="kpi-code">4-1</span> 通過人次（境內＋境外）</label>
+              <input type="number" id="kpi_4_1" name="4-1" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_4_2"><span class="kpi-code">4-2</span> 境內通過人次</label>
+              <input type="number" id="kpi_4_2" name="4-2" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_4_3"><span class="kpi-code">4-3</span> 境外通過人次</label>
+              <input type="number" id="kpi_4_3" name="4-3" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_4_4"><span class="kpi-code">4-4</span> 取得證書數</label>
+              <input type="number" id="kpi_4_4" name="4-4" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_4_5"><span class="kpi-code">4-5</span> 核與學分人數</label>
+              <input type="number" id="kpi_4_5" name="4-5" min="0" value="0" required>
+            </div>
+            <div class="kpi-item">
+              <label for="kpi_4_6"><span class="kpi-code">4-6</span> 核與學分數</label>
+              <input type="number" id="kpi_4_6" name="4-6" min="0" value="0" required>
+            </div>
+          </div>
+          <div id="error_4" class="field-error hidden"></div>
+        </div>
+
+      </div><!-- .card -->
+
+      <div id="submitError" class="alert alert-error hidden"></div>
+      <div id="submitSuccess" class="alert alert-success hidden"></div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">送出資料</button>
+        <span class="text-muted" id="lastSubmitted"></span>
+      </div>
+    </form>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/form.js"></script>
+</body>
+</html>

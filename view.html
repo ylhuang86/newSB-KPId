@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>查閱資料</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">新南向磨課師 KPI 填報系統</div>
+    <div class="navbar-user">
+      <span id="navSchoolName"></span>
+      <a href="form.html" class="nav-link">填寫表單</a>
+      <a href="change-password.html" class="nav-link">更改密碼</a>
+      <button class="btn btn-sm btn-outline" onclick="Auth.logout()">登出</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="page-header">
+      <h2 id="pageTitle">本月資料查閱</h2>
+      <p id="pageSubtitle" class="text-muted"></p>
+    </div>
+
+    <div id="loadingMsg" class="alert alert-info">資料載入中，請稍候…</div>
+    <div id="noDataMsg" class="alert hidden">本月尚未填寫資料。</div>
+
+    <div id="dataCard" class="card hidden">
+      <div class="card-header">
+        <span id="dataTitle"></span>
+        <button class="btn btn-sm btn-outline" id="downloadBtn">下載 .xlsx</button>
+      </div>
+
+      <table class="data-table" id="kpiTable">
+        <thead>
+          <tr>
+            <th>欄位代號</th>
+            <th>說明</th>
+            <th>數值</th>
+          </tr>
+        </thead>
+        <tbody id="kpiTableBody"></tbody>
+      </table>
+
+      <div class="table-footer">
+        <span class="text-muted" id="submittedAt"></span>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.mini.min.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/view.js"></script>
+</body>
+</html>
