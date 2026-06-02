@@ -13,27 +13,39 @@
   document.getElementById('pageTitle').textContent = `KPI 填寫表單 — ${user.school_name}`;
   document.getElementById('pageSubtitle').textContent = `填報月份：${month}`;
 
-  // 開放期間判斷
+  // 開放期間判斷（測試期間暫時關閉，正式上線前取消下方註解並刪除 isOpen = true 那行）
   const windowAlert = document.getElementById('windowAlert');
   const submitBtn   = document.getElementById('submitBtn');
-  const isOpen      = Auth.isWithinSubmitWindow();
-  const today       = new Date().getDate();
+  // const isOpen   = Auth.isWithinSubmitWindow();
+  // const today    = new Date().getDate();
+  const isOpen = true; // 🔧 測試用：暫時開放，正式上線請刪除此行並取消上方兩行註解
 
-  if (today < CONFIG.OPEN_DAY) {
-    windowAlert.textContent = `本月填寫尚未開放，開放時間為每月 ${CONFIG.OPEN_DAY} 日起。`;
-    windowAlert.className = 'alert alert-warning';
-    windowAlert.classList.remove('hidden');
-    submitBtn.disabled = true;
-  } else if (today > CONFIG.CLOSE_DAY) {
-    windowAlert.textContent = `本月填寫已截止（截止時間：每月 ${CONFIG.CLOSE_DAY} 日 23:59）。`;
-    windowAlert.className = 'alert alert-error';
-    windowAlert.classList.remove('hidden');
-    submitBtn.disabled = true;
-  } else {
+  // if (today < CONFIG.OPEN_DAY) {
+  //   windowAlert.textContent = `本月填寫尚未開放，開放時間為每月 ${CONFIG.OPEN_DAY} 日起。`;
+  //   windowAlert.className = 'alert alert-warning';
+  //   windowAlert.classList.remove('hidden');
+  //   submitBtn.disabled = true;
+  // } else if (today > CONFIG.CLOSE_DAY) {
+  //   windowAlert.textContent = `本月填寫已截止（截止時間：每月 ${CONFIG.CLOSE_DAY} 日 23:59）。`;
+  //   windowAlert.className = 'alert alert-error';
+  //   windowAlert.classList.remove('hidden');
+  //   submitBtn.disabled = true;
+  // } else {
     windowAlert.textContent = `填寫開放中，截止時間：本月 ${CONFIG.CLOSE_DAY} 日 23:59。`;
     windowAlert.className = 'alert alert-info';
     windowAlert.classList.remove('hidden');
-  }
+  // }
+
+  // 數字輸入框：點擊時清除 0，離開時補回整數
+  document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('focus', function() {
+      if (this.value === '0') this.value = '';
+    });
+    input.addEventListener('blur', function() {
+      const val = parseInt(this.value, 10);
+      this.value = isNaN(val) || val < 0 ? 0 : val;
+    });
+  });
 
   // 載入已有資料（若有）
   const existing = await API.getKPI(user.school_id, month);

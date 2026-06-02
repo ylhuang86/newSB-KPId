@@ -140,12 +140,12 @@ function handleSubmitKPI(params) {
     return { success: false, message: '缺少必要參數' };
   }
 
-  // 日期限制
-  var now = new Date();
-  var day = now.getDate();
-  if (day < 20 || day > 27) {
-    return { success: false, message: '目前不在填寫開放期間（每月 20 日～27 日）' };
-  }
+  // 日期限制（測試期間暫時關閉，正式上線前取消下方註解並刪除 return 那行）
+  // var now = new Date();
+  // var day = now.getDate();
+  // if (day < 20 || day > 27) {
+  //   return { success: false, message: '目前不在填寫開放期間（每月 20 日～27 日）' };
+  // }
 
   // 月份合法性
   if (VALID_MONTHS.indexOf(month) === -1) {

@@ -226,6 +226,17 @@ const Admin = {
     document.getElementById('editSuccess').classList.add('hidden');
     document.getElementById('editCard').classList.remove('hidden');
     document.getElementById('editCard').scrollIntoView({ behavior: 'smooth' });
+
+    // 數字輸入框：點擊時清除 0，離開時補回整數
+    document.querySelectorAll('#editGrid input[type="number"]').forEach(input => {
+      input.addEventListener('focus', function() {
+        if (this.value === '0') this.value = '';
+      });
+      input.addEventListener('blur', function() {
+        const val = parseInt(this.value, 10);
+        this.value = isNaN(val) || val < 0 ? 0 : val;
+      });
+    });
   },
 
   cancelEdit() {
