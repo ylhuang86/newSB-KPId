@@ -70,27 +70,52 @@ const Export = {
     XLSX.writeFile(wb, `KPI_統計報表_${month}.xlsx`);
   },
 
-  // 管理者：所有月份 summary → .xlsx（同 summary 工作表結構）
+  // 管理者：所有月份 summary → .xlsx
+  // 格式：每月一列（月份 × KPI），最後一列為所有月份加總
   adminAllMonths(summaryData) {
-    // 列 = KPI 欄位，欄 = 欄位編號 + 說明 + 月份（同 Google Sheets 結構）
     const months = CONFIG.VALID_MONTHS.filter(m => summaryData[m]);
 
-    const headerRow = ['欄位編號', '說明', ...months];
-    const rows = [headerRow];
+    // 表頭：月份 + 16 個 KPI 欄位
+    const headerRow = ['月份', ...CONFIG.KPI_ROWS];
+    const subHeaderRow = ['', ...CONFIG.KPI_ROWS.map(k => CONFIG.KPI_LABELS[k])];
+    const rows = [headerRow, subHeaderRow];
 
-    CONFIG.KPI_ROWS.forEach(key => {
-      const row = [key, CONFIG.KPI_LABELS[key]];
-      months.forEach(m => {
-        row.push(Number((summaryData[m] && summaryData[m][key]) || 0));
+    // 每月一列
+    const grandTotal = {};
+    CONFIG.KPI_ROWS.forEach(k => { grandTotal[k] = 0; });
+
+    months.forEach(m => {
+      const row = [m];
+      CONFIG.KPI_ROWS.forEach(key => {
+        const val = Number((summaryData[m] && summaryData[m][key]) || 0);
+        row.push(val);
+        grandTotal[key] += val;
       });
       rows.push(row);
     });
 
+    // 空白分隔列
+    rows.push([]);
+
+    // 所有月份加總列
+    const totalRow = ['所有月份加總', ...CONFIG.KPI_ROWS.map(k => grandTotal[k])];
+    rows.push(totalRow);
+
     const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = [{ wch: 10 }, { wch: 28 }, ...months.map(() => ({ wch: 12 }))];
+
+    // 欄寬：月份欄 + 16 個 KPI 欄
+    ws['!cols'] = [{ wch: 12 }, ...CONFIG.KPI_ROWS.map(() => ({ wch: 10 }))];
+
+    // 加粗加總列（最後一列）
+    const totalRowIndex = rows.length - 1;
+    for (let c = 0; c <= CONFIG.KPI_ROWS.length; c++) {
+      const cellAddr = XLSX.utils.encode_cell({ r: totalRowIndex, c });
+      if (!ws[cellAddr]) continue;
+      ws[cellAddr].s = { font: { bold: true }, fill: { fgColor: { rgb: 'DBEAFE' } } };
+    }
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+    XLSX.utils.book_append_sheet(wb, ws, '所有月份加總');
     XLSX.writeFile(wb, `KPI_所有月份加總.xlsx`);
   }
 };
