@@ -320,6 +320,7 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
   padding: 20px;
 }
 .login-card {
+  position: relative;
   width: 100%;
   max-width: 420px;
   background: var(--bg-card);
@@ -327,12 +328,23 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
   box-shadow: 0 4px 24px rgba(0,0,0,.10);
   padding: 40px 36px;
 }
+/* logo 貼在卡片右上角 */
+.login-card::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 80px;
+  height: 32px;
+  background: url('../logo_blue.png') no-repeat center / contain;
+  opacity: 0.75;
+}
 .login-logo { text-align: center; margin-bottom: 32px; }
-.login-logo-img { width: 100%; max-width: 280px; height: auto; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto; }
 .login-logo h1 { font-size: 1.125rem; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
 .login-logo p  { font-size: .875rem; color: var(--text-3); }
 
-.navbar-logo { height: 28px; width: auto; margin-right: 8px; vertical-align: middle; filter: brightness(0) invert(1); }
+/* 導覽列 logo */
+.navbar-logo { height: 22px; width: auto; margin-right: 8px; vertical-align: middle; filter: brightness(0) invert(1); opacity: 0.9; }
 
 /* ── 響應式 ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
