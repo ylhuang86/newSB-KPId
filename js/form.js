@@ -30,7 +30,7 @@
     windowAlert.classList.remove('hidden');
     submitBtn.disabled = true;
   } else {
-    windowAlert.textContent = `填寫開放中，截止時間：本月 ${CONFIG.CLOSE_DAY} 日 23:59。`;
+    windowAlert.textContent = `填寫開放中`; //，截止時間：本月 ${CONFIG.CLOSE_DAY} 日 23:59。`;
     windowAlert.className = 'alert alert-info';
     windowAlert.classList.remove('hidden');
   }
