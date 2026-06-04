@@ -140,12 +140,7 @@ function handleSubmitKPI(params) {
     return { success: false, message: '缺少必要參數' };
   }
 
-  // 日期限制：每月 20 日起至 27 日 23:59
-  var now = new Date();
-  var day = now.getDate();
-  if (day < 20 || day > 27) {
-    return { success: false, message: '目前不在填寫開放期間（每月 20 日～27 日）' };
-  }
+  // 日期限制已關閉（全時段開放）
 
   // 月份合法性
   if (VALID_MONTHS.indexOf(month) === -1) {
