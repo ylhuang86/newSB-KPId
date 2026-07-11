@@ -5,6 +5,14 @@
 
 var SPREADSHEET_ID = '1pELlWCkWPgaRBUUe52cX_UawI1M9R5UMxOjU-Ft1goI';
 
+// 各校填寫開放起始日（每月 24 日起開放，至月底截止）
+var OPEN_DAY = 24;
+
+// 取得目前台北時間的「日」（1~31）
+function getTaipeiDay_() {
+  return parseInt(Utilities.formatDate(new Date(), 'Asia/Taipei', 'd'), 10);
+}
+
 var SCHOOLS = ['nycu','tku','nthu','tmu','ntou','niu','kmu','tcu','cycu','cmu','clut'];
 
 var SCHOOL_NAMES = {
@@ -98,6 +106,16 @@ function doPost(e) {
 }
 
 // =============================================================
+//  Helper：依表頭名稱取得欄位索引（0-based），找不到回傳 -1
+// =============================================================
+function getColIndex(headerRow, colName) {
+  for (var i = 0; i < headerRow.length; i++) {
+    if (String(headerRow[i]).trim() === colName) return i;
+  }
+  return -1;
+}
+
+// =============================================================
 //  登入驗證
 // =============================================================
 function handleLogin(params) {
@@ -112,16 +130,29 @@ function handleLogin(params) {
   var sheet = ss.getSheetByName('users');
   if (!sheet) return { success: false, message: '找不到 users 工作表' };
 
-  var data = sheet.getDataRange().getValues();
-  // 表頭：school_id, school_name, username, password_hash, role
+  var data    = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  // 依表頭名稱動態找欄位，不依賴固定索引
+  var colSchoolId   = getColIndex(headers, 'school_id');
+  var colSchoolName = getColIndex(headers, 'school_name');
+  var colUsername   = getColIndex(headers, 'username');
+  var colPassword   = getColIndex(headers, 'password_hash');
+  var colRole       = getColIndex(headers, 'role');
+
+  if (colUsername === -1 || colPassword === -1) {
+    return { success: false, message: 'users 工作表缺少必要欄位（username / password_hash）' };
+  }
+
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
-    if (String(row[2]).trim() === username && String(row[3]).trim() === passwordHash) {
+    if (String(row[colUsername]).trim() === username &&
+        String(row[colPassword]).trim() === passwordHash) {
       return {
         success:     true,
-        school_id:   String(row[0]).trim(),
-        school_name: String(row[1]).trim(),
-        role:        String(row[4]).trim()
+        school_id:   colSchoolId   !== -1 ? String(row[colSchoolId]).trim()   : '',
+        school_name: colSchoolName !== -1 ? String(row[colSchoolName]).trim() : '',
+        role:        colRole       !== -1 ? String(row[colRole]).trim()        : ''
       };
     }
   }
@@ -129,7 +160,7 @@ function handleLogin(params) {
 }
 
 // =============================================================
-//  各校送出 KPI（日期限制：每月 20~27 日）
+//  各校送出 KPI（日期限制：每月 24 日起開放，至月底截止）
 // =============================================================
 function handleSubmitKPI(params) {
   var schoolId = params.school_id;
@@ -140,7 +171,10 @@ function handleSubmitKPI(params) {
     return { success: false, message: '缺少必要參數' };
   }
 
-  // 日期限制已關閉（全時段開放）
+  // 日期限制：僅每月 24 日至月底可送出（月底上限由當月實際天數自然限制）
+  if (getTaipeiDay_() < OPEN_DAY) {
+    return { success: false, message: '目前非填報期間，開放時間為每月 ' + OPEN_DAY + ' 日至月底' };
+  }
 
   // 月份合法性
   if (VALID_MONTHS.indexOf(month) === -1) {
@@ -180,14 +214,14 @@ function writeKPI(schoolId, month, kpiData) {
 
   var colIndex = getOrCreateMonthColumn(sheet, month);
 
-  // 寫入 16 個 KPI 值（第 2 列起，第 1 列為表頭 row label）
-  for (var i = 0; i < KPI_ROWS.length; i++) {
-    var val = kpiData[KPI_ROWS[i]];
-    sheet.getRange(i + 2, colIndex).setValue(val !== undefined ? Number(val) : 0);
-  }
-  // 第 18 列：timestamp
+  // 一次寫入 16 個 KPI 值 + timestamp
   var ts = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm:ss');
-  sheet.getRange(KPI_ROWS.length + 2, colIndex).setValue(ts);
+  var writeData = KPI_ROWS.map(function(k) {
+    var val = kpiData[k];
+    return [val !== undefined ? Number(val) : 0];
+  });
+  writeData.push([ts]);
+  sheet.getRange(2, colIndex, writeData.length, 1).setValues(writeData);
 
   // --- 同步更新 summary ---
   updateSummary(ss, schoolId, month, kpiData);
@@ -197,21 +231,34 @@ function writeKPI(schoolId, month, kpiData) {
 
 // 取得月份欄號，不存在則新增
 // 欄 1 = 欄位編號，欄 2 = 說明，欄 3 起 = 月份資料
+// 將欄位值（可能是 Date 或 String）統一轉成 "YYYY-MM" 格式
+function cellToMonthStr(val) {
+  if (val instanceof Date && !isNaN(val)) {
+    var y = val.getFullYear();
+    var m = String(val.getMonth() + 1).padStart(2, '0');
+    return y + '-' + m;
+  }
+  return String(val).trim();
+}
+
 function getOrCreateMonthColumn(sheet, month) {
   var lastCol   = Math.max(sheet.getLastColumn(), 2);
   var headerRow = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   for (var c = 0; c < headerRow.length; c++) {
-    if (String(headerRow[c]).trim() === month) return c + 1;
+    if (cellToMonthStr(headerRow[c]) === month) return c + 1;
   }
   // 依照 VALID_MONTHS 順序插入，最早從第 3 欄開始
   var targetIdx = VALID_MONTHS.indexOf(month);
   var insertCol = 3;
-  for (var c = 2; c < headerRow.length; c++) { // 從第 3 欄（index 2）開始找
-    var existIdx = VALID_MONTHS.indexOf(String(headerRow[c]).trim());
+  for (var c = 2; c < headerRow.length; c++) {
+    var existIdx = VALID_MONTHS.indexOf(cellToMonthStr(headerRow[c]));
     if (existIdx !== -1 && existIdx < targetIdx) insertCol = c + 2;
   }
   sheet.insertColumnBefore(insertCol);
-  sheet.getRange(1, insertCol).setValue(month);
+  // 強制設為純文字，避免 Sheets 自動轉成 Date
+  var cell = sheet.getRange(1, insertCol);
+  cell.setNumberFormat('@STRING@');
+  cell.setValue(month);
   return insertCol;
 }
 
@@ -295,23 +342,32 @@ function updateSummary(ss, schoolId, month, kpiData) {
 
   var colIndex = getOrCreateMonthColumn(sheet, month);
 
-  // 重新加總該月所有學校的 KPI
-  for (var i = 0; i < KPI_ROWS.length; i++) {
-    var total = 0;
-    SCHOOLS.forEach(function(sid) {
-      var sSheet = ss.getSheetByName(sid);
-      if (!sSheet) return;
-      var sHeader = sSheet.getRange(1, 1, 1, Math.max(sSheet.getLastColumn(), 1)).getValues()[0];
-      var sCol = -1;
-      for (var c = 0; c < sHeader.length; c++) {
-        if (String(sHeader[c]).trim() === month) { sCol = c + 1; break; }
-      }
-      if (sCol === -1) return;
-      var val = sSheet.getRange(i + 2, sCol).getValue();
-      total += Number(val) || 0;
-    });
-    sheet.getRange(i + 2, colIndex).setValue(total);
-  }
+  // 初始化加總陣列
+  var totals = KPI_ROWS.map(function() { return 0; });
+
+  // 每間學校一次讀整欄，避免逐格呼叫 API
+  SCHOOLS.forEach(function(sid) {
+    var sSheet = ss.getSheetByName(sid);
+    if (!sSheet) return;
+
+    var lastCol  = Math.max(sSheet.getLastColumn(), 2);
+    var sHeader  = sSheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var sCol     = -1;
+    for (var c = 0; c < sHeader.length; c++) {
+      if (cellToMonthStr(sHeader[c]) === month) { sCol = c + 1; break; }
+    }
+    if (sCol === -1) return;
+
+    // 一次讀取該學校該月所有 KPI 列
+    var colData = sSheet.getRange(2, sCol, KPI_ROWS.length, 1).getValues();
+    for (var i = 0; i < KPI_ROWS.length; i++) {
+      totals[i] += Number(colData[i][0]) || 0;
+    }
+  });
+
+  // 一次寫入 summary 欄
+  var writeData = totals.map(function(v) { return [v]; });
+  sheet.getRange(2, colIndex, KPI_ROWS.length, 1).setValues(writeData);
 }
 
 // =============================================================
@@ -330,10 +386,19 @@ function handleChangePassword(params) {
   var sheet = ss.getSheetByName('users');
   if (!sheet) return { success: false, message: '找不到 users 工作表' };
 
-  var data = sheet.getDataRange().getValues();
+  var data    = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var colUsername = getColIndex(headers, 'username');
+  var colPassword = getColIndex(headers, 'password_hash');
+
+  if (colUsername === -1 || colPassword === -1) {
+    return { success: false, message: 'users 工作表缺少必要欄位（username / password_hash）' };
+  }
+
   for (var i = 1; i < data.length; i++) {
-    if (String(data[i][2]).trim() === username && String(data[i][3]).trim() === oldPasswordHash) {
-      sheet.getRange(i + 1, 4).setValue(newPasswordHash); // 第 4 欄：password_hash
+    if (String(data[i][colUsername]).trim() === username &&
+        String(data[i][colPassword]).trim() === oldPasswordHash) {
+      sheet.getRange(i + 1, colPassword + 1).setValue(newPasswordHash);
       return { success: true, message: '密碼已成功更新' };
     }
   }

@@ -22,8 +22,8 @@ const CONFIG = {
     return months;
   })(),
 
-  // 各校填寫開放日（每月 20 日起，27 日 23:59 截止）
-  OPEN_DAY:  1,
+  // 各校填寫開放日（每月 24 日起，月底截止）
+  OPEN_DAY:  24,
   CLOSE_DAY: 31,
 
   SCHOOLS: ['nycu','tku','nthu','tmu','ntou','niu','kmu','tcu','cycu','cmu','clut'],

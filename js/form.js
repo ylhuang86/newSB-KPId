@@ -13,10 +13,16 @@
   document.getElementById('pageTitle').textContent = `KPI 填寫表單 — ${user.school_name}`;
   document.getElementById('pageSubtitle').textContent = `填報月份：${month}`;
 
-  // 日期限制已關閉（全時段開放）
+  // 日期限制：每月 24 日起開放，月底截止
   const windowAlert = document.getElementById('windowAlert');
   const submitBtn   = document.getElementById('submitBtn');
-  const isOpen      = true;
+  const isOpen      = Auth.isWithinSubmitWindow();
+
+  if (!isOpen) {
+    windowAlert.textContent = `目前非填報期間，開放時間為每月 ${CONFIG.OPEN_DAY} 日至月底，請於開放期間內填寫送出。`;
+    windowAlert.classList.remove('hidden');
+    submitBtn.disabled = true;
+  }
 
   // 數字輸入框：點擊時清除 0，離開時補回整數
   document.querySelectorAll('input[type="number"]').forEach(input => {
