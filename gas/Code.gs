@@ -314,7 +314,11 @@ function handleGetSummary(params) {
   var lastRow = Math.max(sheet.getLastRow(), 1);
   var allData = sheet.getRange(1, 1, lastRow, lastCol).getValues();
 
-  // 第 1 列：表頭（欄1=欄位編號, 欄2=說明, 欄3起=月份）；第 1 欄：KPI 編號
+  // 第 1 列：表頭（欄1=欄位編號, 欄2=說明, 欄3起=月份）；第 2 列起依 KPI_ROWS 順序排列
+  // 注意：欄位編號（第 1 欄）不可用來當作 key 讀取——
+  // Google Sheets 會把 "1-1"、"2-1" 這類文字誤判成日期並悄悄轉成 Date 型別，
+  // 用儲存格內容比對會抓到日期字串而非正確代號。改用固定的 KPI_ROWS 順序對應列位置，
+  // 跟 writeKPI／updateSummary 寫入時的邏輯一致。
   var headers = allData[0].slice(2); // 從第 3 欄（index 2）起取月份
   var result  = {};
 
@@ -324,9 +328,9 @@ function handleGetSummary(params) {
     if (filterMonth && m !== filterMonth) continue;
 
     result[m] = {};
-    for (var r = 1; r < allData.length; r++) {
-      var kpiKey = String(allData[r][0]).trim();
-      if (kpiKey) result[m][kpiKey] = allData[r][c + 2]; // offset +2（跳過欄位編號、說明）
+    for (var i = 0; i < KPI_ROWS.length; i++) {
+      var r = i + 1; // 資料列從 allData[1] 開始，對應 KPI_ROWS[0]
+      result[m][KPI_ROWS[i]] = allData[r] ? (allData[r][c + 2] || 0) : 0; // offset +2（跳過欄位編號、說明）
     }
   }
 
